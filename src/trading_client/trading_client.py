@@ -47,7 +47,8 @@ class TradingClient:
         
         self._strategy_factory = OrderStrategyFactory()
     
-    def execute_trade(self, 
+    def execute_trade(self,
+                    client_order_id: str,
                      product_id: str, 
                      quantity: float, 
                      price: Optional[float] = None, 
@@ -86,6 +87,7 @@ class TradingClient:
             
             # Create trade request
             trade_request = TradeRequest(
+                client_order_id=client_order_id,
                 product_id=product_id,
                 quantity=abs(quantity),  # Ensure positive quantity
                 order_type=validated_order_type,
@@ -96,11 +98,10 @@ class TradingClient:
             # Get strategy and prepare order parameters
             strategy = self._strategy_factory.create_strategy(validated_order_type)
             order_params = strategy.prepare_order_params(trade_request)
-            
             # Execute the order
-            response = self._client.create_order(**order_params)
+            response = self._client.create_order(**order_params).to_dict()
             
-            return self._process_trade_response(response, strategy.get_order_type_name(), price)
+            return self._process_trade_response(response, trade_request)
             
         except ValidationError:
             raise
@@ -112,19 +113,19 @@ class TradingClient:
         Cancel a pending order.
         
         Args:
-            order_id: Order ID to cancel
+            client_order_id: Order ID to cancel
             
         Returns:
             CancelResult with cancellation details
             
         Raises:
-            ValidationError: If order_id is invalid
+            ValidationError: If client_order_id is invalid
             OrderError: If cancellation fails
         """
         try:
             OrderValidator.validate_order_id(order_id)
             
-            response = self._client.cancel_orders(order_ids=[order_id])
+            response = self._client.cancel_orders(order_ids=[order_id]).to_dict()
             
             return self._process_cancel_response(response, order_id)
             
@@ -150,7 +151,7 @@ class TradingClient:
         try:
             OrderValidator.validate_order_id(order_id)
             
-            response = self._client.get_order(order_id)
+            response = self._client.get_order(order_id).to_dict()
             
             return self._process_status_response(response, order_id)
             
@@ -170,33 +171,65 @@ class TradingClient:
             APIError: If balance retrieval fails
         """
         try:
-            response = self._client.get_accounts()
+            response = self._client.get_accounts().to_dict()
             
             return self._process_balance_response(response)
             
         except Exception as e:
             raise APIError(f"Failed to retrieve account balance: {str(e)}")
     
-    def _process_trade_response(self, response: dict, order_type: str, price: Optional[float]) -> TradeResult:
+    def _process_trade_response(self, response: dict, trade_request: TradeRequest) -> TradeResult:
         """Process trade execution response"""
         if response.get('success'):
             order_data = response.get('order', {})
             order_config = order_data.get('order_configuration', {})
             
-            # Extract size from appropriate configuration
-            size = (order_config.get('market_market_ioc', {}).get('base_size') or 
-                   order_config.get('limit_limit_gtc', {}).get('base_size') or
-                   order_config.get('market_market_ioc', {}).get('quote_size'))
+            # Extract size from appropriate configuration, fallback to original request
+            size = None
             
+            # Try to get size from market order configuration
+            market_config = order_config.get('market_market_ioc', {})
+            if market_config:
+                size = market_config.get('base_size') or market_config.get('quote_size')
+            
+            # Try to get size from limit order configuration if not found
+            if not size:
+                limit_config = order_config.get('limit_limit_gtc', {})
+                if limit_config:
+                    size = limit_config.get('base_size')
+            
+            # Fallback to original request quantity if not found in response
+            if not size:
+                size = str(trade_request.quantity)
+            
+            # Get side from the order data, fallback to original request
+            side = order_data.get('side')
+            if not side:
+                side = trade_request.side.value if trade_request.side else None
+            
+            # Get status - try multiple possible locations
+            status = (order_data.get('status') or 
+                     response.get('status') or 
+                     'PENDING')  # Default status
+            
+            # Get order ID - try multiple possible locations
+            client_order_id = (order_data.get('client_order_id') or 
+                       response.get('client_order_id')
+            )
+            # Get order ID - try multiple possible locations
+            order_id = (order_data.get('order_id') or 
+                       response.get('order_id')
+            )            
             return TradeResult(
                 success=True,
-                order_id=order_data.get('order_id'),
-                product_id=order_data.get('product_id'),
-                side=order_data.get('side'),
-                order_type=order_type,
+                client_order_id=client_order_id,
+                order_id=order_id,
+                product_id=order_data.get('product_id') or trade_request.product_id,
+                side=side,
+                order_type=trade_request.order_type.value,
                 size=size,
-                price=price,
-                status=order_data.get('status'),
+                price=trade_request.price,
+                status=status,
                 created_time=order_data.get('created_time'),
                 response=response
             )
@@ -286,7 +319,7 @@ class TradingClient:
                 # Add to total USD value (simplified)
                 if currency in ['USD', 'USDC']:
                     total_value_usd += total_balance
-        
+
         return AccountBalance(
             balances=balances,
             total_value_usd=total_value_usd,

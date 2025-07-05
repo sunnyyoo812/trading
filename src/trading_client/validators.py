@@ -104,13 +104,13 @@ class OrderValidator:
     """Validates order-related parameters"""
     
     @staticmethod
-    def validate_order_id(order_id: str) -> None:
+    def validate_order_id(client_order_id: str) -> None:
         """Validate order ID"""
-        if not order_id:
-            raise ValidationError("order_id is required")
+        if not client_order_id:
+            raise ValidationError("client_order_id is required")
         
-        if not isinstance(order_id, str):
-            raise ValidationError("order_id must be a string")
+        if not isinstance(client_order_id, str):
+            raise ValidationError("client_order_id must be a string")
         
-        if len(order_id.strip()) == 0:
-            raise ValidationError("order_id cannot be empty")
+        if len(client_order_id.strip()) == 0:
+            raise ValidationError("client_order_id cannot be empty")

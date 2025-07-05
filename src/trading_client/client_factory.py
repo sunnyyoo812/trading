@@ -62,9 +62,9 @@ class CoinbaseClientFactory:
         environment = environment.lower()
         
         if environment == "production":
-            return "https://api.coinbase.com"
+            return "api.coinbase.com"
         elif environment == "sandbox":
-            return "https://api-public.sandbox.exchange.coinbase.com"
+            return "api-sandbox.coinbase.com"
         else:
             raise ValueError(f"Invalid environment: {environment}. Must be 'sandbox' or 'production'")
     

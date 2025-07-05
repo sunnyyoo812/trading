@@ -25,6 +25,7 @@ class MarketOrderStrategy(OrderStrategy):
     def prepare_order_params(self, trade_request: TradeRequest) -> Dict[str, Any]:
         """Prepare market order parameters"""
         order_params = {
+            'client_order_id': trade_request.client_order_id,
             'product_id': trade_request.product_id,
             'side': trade_request.side.value,
             'order_configuration': {}
@@ -33,7 +34,7 @@ class MarketOrderStrategy(OrderStrategy):
         if trade_request.side == OrderSide.BUY:
             # For market buy orders, specify quote_size (USD amount)
             order_params['order_configuration']['market_market_ioc'] = {
-                'quote_size': str(trade_request.quantity)
+                'base_size': str(trade_request.quantity)
             }
         else:
             # For market sell orders, specify base_size (crypto amount)
@@ -52,6 +53,7 @@ class LimitOrderStrategy(OrderStrategy):
     def prepare_order_params(self, trade_request: TradeRequest) -> Dict[str, Any]:
         """Prepare limit order parameters"""
         order_params = {
+            'client_order_id': trade_request.client_order_id,
             'product_id': trade_request.product_id,
             'side': trade_request.side.value,
             'order_configuration': {

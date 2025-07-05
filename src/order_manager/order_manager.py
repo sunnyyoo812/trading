@@ -1,7 +1,11 @@
-from trading_client import TradingClient
-from signal_generator import SignalGenerator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from trading_client import TradingClient
+    from signal_generator.signal_generator import SignalGenerator
+
 class OrderManager:
-    def __init__(self, trading_client: TradingClient):
+    def __init__(self, trading_client):
         """
         Initialize the OrderManager with a trading client.
 
@@ -14,7 +18,7 @@ class OrderManager:
         self.trading_client = trading_client
         
     
-    def subscribe(self, signal_generator: SignalGenerator):
+    def subscribe(self, signal_generator):
         """
         Subscribe to a signal generator to receive trading signals.
 
@@ -66,5 +70,3 @@ class OrderManager:
         - None
         """
         pass
-    
-    

@@ -12,8 +12,8 @@ class OrderType(Enum):
     LIMIT = "limit"
 
 class OrderSide(Enum):
-    BUY = "buy"
-    SELL = "sell"
+    BUY = "BUY"
+    SELL = "SELL"
 
 class OrderStatus(Enum):
     PENDING = "pending"
@@ -27,6 +27,7 @@ class TradeRequest:
     """Represents a trade request"""
     product_id: str
     quantity: float
+    client_order_id: Optional[str] = None
     order_type: OrderType = OrderType.MARKET
     side: Optional[OrderSide] = None
     price: Optional[float] = None
@@ -47,6 +48,7 @@ class TradeResult:
     """Represents the result of a trade execution"""
     success: bool
     order_id: Optional[str] = None
+    client_order_id: Optional[str] = None
     product_id: Optional[str] = None
     side: Optional[str] = None
     order_type: Optional[str] = None
@@ -67,6 +69,7 @@ class OrderStatusInfo:
     size: str
     filled_size: str
     remaining_size: str
+    client_order_id: Optional[str] = None
     price: Optional[str] = None
     average_filled_price: Optional[str] = None
     created_time: Optional[str] = None
@@ -81,6 +84,7 @@ class CancelResult:
     order_id: str
     status: str
     message: str
+    client_order_id: Optional[str] = None
     response: Optional[Dict[str, Any]] = None
 
 @dataclass
