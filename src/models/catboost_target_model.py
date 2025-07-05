@@ -241,32 +241,33 @@ class CatBoostTargetModel(TargetModel):
             logger.error(f"Error during model training: {e}")
             raise
     
-    def predict(self, data: Union[Dict, pd.DataFrame]) -> List[Dict]:
+    def predict(self, data: Union[Dict, pd.DataFrame]) -> float:
         """
-        Generate trading signals based on model predictions
+        Predict price change percentage based on market features
         
         Parameters:
         - data: Market features for prediction
         
         Returns:
-        - List of trading signal dictionaries
+        - Predicted price change percentage (e.g., 2.5 for +2.5%, -1.2 for -1.2%)
         """
         if not self.is_trained:
-            logger.warning("Model not trained. Returning default hold signal.")
-            return [{'action': 'hold', 'confidence': 0.0, 'reason': 'Model not trained'}]
+            logger.warning("Model not trained. Returning 0.0 prediction.")
+            return 0.0
         
         try:
             # Prepare features
             X = self._prepare_features(data)
             
-            # Get model prediction
+            # Get model prediction (price change percentage)
             prediction = self.model.predict(X)[0]  # Single prediction
-
-            return prediction
+            
+            logger.debug(f"Model prediction: {prediction:.4f}% price change")
+            return float(prediction)
             
         except Exception as e:
             logger.error(f"Error during prediction: {e}")
-            return [{'action': 'hold', 'confidence': 0.0, 'reason': f'Prediction error: {str(e)}'}]
+            return 0.0
     
     
     def evaluate(self, data: Union[Dict, pd.DataFrame], target: Union[List, np.ndarray, pd.Series]) -> Dict:
