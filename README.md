@@ -5,7 +5,7 @@ A comprehensive cryptocurrency trading bot with machine learning capabilities, r
 ## Project Structure
 
 ```
-trading_bot2/
+trading/
 ├── src/                    # Core source code
 │   ├── data/              # Data processing and generation
 │   ├── market_feed/       # Real-time market data feeds
