@@ -78,7 +78,7 @@ def demo_complete_trading_flow():
         print("      • Order Manager (trade execution)")
         
         success = orchestrator.start_trading_flow(
-            environment='sandbox',
+            environment='production',
             trade_amount=1.0,  # Small amount for testing
             buy_threshold=0.3,   # Lower threshold for more signals
             sell_threshold=0.3
@@ -289,7 +289,7 @@ def demo_trading_with_real_model():
     
     # Start trading with CatBoost model
     success = orchestrator.start_trading_flow(
-        environment='sandbox',
+        environment='production',
         trade_amount=100.0,
         buy_threshold=1.0,  # Higher threshold for CatBoost
         sell_threshold=1.0

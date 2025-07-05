@@ -26,7 +26,7 @@ def demo_workflow_orchestrator():
     orchestrator = WorkflowOrchestrator(
         data_dir="demo_data/historical",
         model_dir="demo_models",
-        symbols=['ETH-USD'],  # Single symbol for demo
+        symbols=['DOGE-USD'],  # Single symbol for demo
         model_type='catboost'
     )
     
@@ -79,7 +79,7 @@ def demo_workflow_orchestrator():
         import numpy as np
         
         mock_data = {
-            'symbol': ['ETH-USD'] * 200,
+            'symbol': ['DOGE-USD'] * 200,
             'timestamp': pd.date_range('2025-01-01', periods=200, freq='1min'),
             'mid_price': 3500 + np.cumsum(np.random.randn(200) * 0.1),
             'bid_price': lambda x: x - 0.5,

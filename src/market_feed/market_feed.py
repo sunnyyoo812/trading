@@ -149,7 +149,7 @@ class OrderBook:
 class MarketDataFeed:
     """Coinbase WebSocket Level 2 Order Book Feed"""
     
-    def __init__(self, api_key: str = None, api_secret: str = None, environment: str = 'sandbox'):
+    def __init__(self, api_key: str = None, api_secret: str = None, environment: str = 'production'):
         """
         Initialize MarketDataFeed with Coinbase WebSocket connection
         
